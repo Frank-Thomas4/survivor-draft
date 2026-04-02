@@ -49,9 +49,7 @@ export function calculatePoints(survivor, allSurvivors) {
   if (survivor.eliminated && survivor.eliminationOrder !== null) {
     return survivor.eliminationOrder;
   }
-  // Tentative: if not eliminated, points = (total - number of people already eliminated)
-  const eliminated = allSurvivors.filter(s => s.eliminated).length;
-  return total - eliminated;
+  return total;
 }
 
 export function getTribePoints(tribe, allSurvivors) {
