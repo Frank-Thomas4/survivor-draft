@@ -1,14 +1,17 @@
+// data.js — default state for the app
+// Replace survivor names with actual Survivor 50 cast once announced
+
 export const DEFAULT_DATA = {
   season: "Survivor 50",
   totalSurvivors: 24,
   lastUpdated: null,
   tribes: [
-    { id: "frank",  name: "Frank's Tribe",  owner: "Frank",  icon: null, survivors: [16, 10, 8]  },
-    { id: "james",  name: "James's Tribe",  owner: "James",  icon: null, survivors: [4, 12, 2]  },
-    { id: "graham", name: "Graham's Tribe", owner: "Graham", icon: null, survivors: [9, 15, 5]  },
-    { id: "coley",  name: "Coley's Tribe",  owner: "Coley",  icon: null, survivors: [11, 20, 21] },
-    { id: "robbie", name: "Robbie's Tribe", owner: "Robbie", icon: null, survivors: [24, 3, 22]  },
-    { id: "adam",   name: "Adam's Tribe",   owner: "Adam",   icon: null, survivors: [13, 19, 23] }
+    { id: "frank",  name: "Frank's Tribe",  owner: "Frank",  icon: null, survivors: [16, 10, 8]  }, // Jonathan, Angelina, Chrissy
+    { id: "james",  name: "James's Tribe",  owner: "James",  icon: null, survivors: [4, 12, 2]  }, // Cirie, Rick Devens, Colby
+    { id: "graham", name: "Graham's Tribe", owner: "Graham", icon: null, survivors: [9, 15, 5]  }, // Christian, Genevieve, Ozzy
+    { id: "coley",  name: "Coley's Tribe",  owner: "Coley",  icon: null, survivors: [11, 20, 21] }, // Mike, Charlie, Tiffany
+    { id: "robbie", name: "Robbie's Tribe", owner: "Robbie", icon: null, survivors: [24, 3, 22]  }, // Savannah, Stephenie, Joe
+    { id: "adam",   name: "Adam's Tribe",   owner: "Adam",   icon: null, survivors: [13, 19, 23] }  // Dee, Q, Rizo
   ],
   survivors: [
     { id: 1,  name: "Jenna Lewis-Dougherty",      eliminated: false, eliminationOrder: null },
@@ -38,11 +41,15 @@ export const DEFAULT_DATA = {
   ]
 };
 
+// Scoring: 1st eliminated = 1 pt, winner (last standing) = 24 pts
+// For active (non-eliminated) survivors: tentative points = current number of people still in game
+// e.g. if 4 people have been eliminated, 20 remain, each active survivor tentatively holds rank 5
 export function calculatePoints(survivor, allSurvivors) {
   const total = allSurvivors.length;
   if (survivor.eliminated && survivor.eliminationOrder !== null) {
     return survivor.eliminationOrder;
   }
+  // Tentative: active survivors always show max possible points (total cast size)
   return total;
 }
 

@@ -133,22 +133,6 @@ export default function App() {
           <Leaderboard tribes={data.tribes} survivors={data.survivors} />
           <div className="sidebar-divider" />
           <CastTracker survivors={data.survivors} />
-          <div className="sidebar-divider" />
-          <div>
-            <div className="finns-sidebar__title">🐾 Finn's Tribe</div>
-            <div className="finns-sidebar__grid">
-              {undrafted.length === 0
-                ? <span className="finns-empty">All drafted!</span>
-                : undrafted.map(s => (
-                  <div key={s.id} className={`finns-chip ${s.eliminated ? 'finns-chip--eliminated' : ''}`}>
-                    <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
-                    {s.name}
-                    {s.eliminated && <span className="finns-chip__boot">(#{s.eliminationOrder})</span>}
-                  </div>
-                ))
-              }
-            </div>
-          </div>
         </aside>
 
         {/* ── MAIN ── */}
@@ -158,6 +142,22 @@ export default function App() {
             {data.tribes.map(tribe => (
               <TribeCard key={tribe.id} tribe={tribe} survivors={data.survivors} />
             ))}
+          </div>
+          {/* Finn's Tribe below grid on desktop */}
+          <div className="finns-main">
+            <div className="finns-sidebar__title">🐾 Finn's Tribe</div>
+            <div className="finns-sidebar__grid">
+              {undrafted.length === 0
+                ? <span className="finns-empty">All survivors have been drafted!</span>
+                : undrafted.map(s => (
+                  <div key={s.id} className={`finns-chip ${s.eliminated ? 'finns-chip--eliminated' : ''}`}>
+                    <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
+                    {s.name}
+                    {s.eliminated && <span className="finns-chip__boot">(#{s.eliminationOrder})</span>}
+                  </div>
+                ))
+              }
+            </div>
           </div>
         </main>
 
