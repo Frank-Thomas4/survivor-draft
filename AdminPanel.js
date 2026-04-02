@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ADMIN_PIN = '1234'; // Change this to your desired PIN
+const ADMIN_PIN = '46378154';
 
 export default function AdminPanel({
   data,
