@@ -1,11 +1,70 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useStore } from './useStore'
 import TribeCard from './components/TribeCard'
 import AdminPanel, { ADMIN_PIN } from './components/AdminPanel'
 import Leaderboard from './components/Leaderboard'
-import FinnsTribe from './components/FinnsTribe'
 
 const AUTO_REFRESH_MS = 5 * 60 * 1000
+
+function ScoringTooltip() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+  return (
+    <div className="tooltip-wrap" ref={ref}>
+      <button className="tooltip-btn" onClick={() => setOpen(o => !o)} aria-label="Scoring info">
+        ? Scoring
+      </button>
+      {open && (
+        <div className="tooltip-box">
+          <div className="tooltip-box__title">How Points Work</div>
+          <p className="tooltip-box__text">
+            Each survivor earns points equal to their finishing position.<br />
+            <strong>1st boot = 1 pt · Winner = 24 pts</strong><br /><br />
+            Active survivors show <strong>tentative (~)</strong> points — the max they could earn if they won. Points lock in permanently when eliminated.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CastTracker({ survivors }) {
+  const eliminated = survivors.filter(s => s.eliminated).sort((a, b) => a.eliminationOrder - b.eliminationOrder)
+  const active = survivors.filter(s => !s.eliminated)
+  return (
+    <div className="cast-tracker">
+      <div className="cast-tracker__title">Full Cast</div>
+      <div className="cast-tracker__section-label">Still In ({active.length})</div>
+      <div className="cast-tracker__grid">
+        {active.map(s => (
+          <div key={s.id} className="cast-chip cast-chip--active">
+            <span className="dot--in survivor-row__status-dot" />
+            {s.name}
+          </div>
+        ))}
+      </div>
+      {eliminated.length > 0 && (
+        <>
+          <div className="cast-tracker__section-label cast-tracker__section-label--out">Eliminated ({eliminated.length})</div>
+          <div className="cast-tracker__grid">
+            {eliminated.map(s => (
+              <div key={s.id} className="cast-chip cast-chip--eliminated">
+                <span className="dot--out survivor-row__status-dot" />
+                <span className="cast-chip__name">{s.name}</span>
+                <span className="cast-chip__order">#{s.eliminationOrder}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 export default function App() {
   const {
@@ -29,7 +88,6 @@ export default function App() {
   }, [])
 
   const handleAdminClick = () => { setPinMode(true); setPinInput(''); setPinError(false) }
-
   const handlePinSubmit = (e) => {
     e.preventDefault()
     if (pinInput === ADMIN_PIN) {
@@ -50,10 +108,8 @@ export default function App() {
       {/* ── HEADER ── */}
       <header className="app-header">
         <div className="app-header__left">
-          <span className="app-header__eyebrow">Survivor 50 · Season 50</span>
-          <h1 className="app-header__title">
-            The Boys<sup>TM</sup> Draft
-          </h1>
+          <span className="app-header__eyebrow">Survivor 50 · In the Hands of the Fans</span>
+          <h1 className="app-header__title">The Boys<sup>TM</sup> Draft</h1>
         </div>
         <div className="app-header__right">
           <div className="app-header__stat">
@@ -64,52 +120,35 @@ export default function App() {
             <span className="app-header__stat-num">{remainingCount}</span>
             <span className="app-header__stat-label">Remain</span>
           </div>
+          <ScoringTooltip />
           <span className="app-header__torch">🔥</span>
         </div>
       </header>
 
-      {/* ── BODY: SIDEBAR + MAIN ── */}
+      {/* ── DESKTOP BODY ── */}
       <div className="app-body">
 
         {/* ── SIDEBAR ── */}
         <aside className="app-sidebar">
-
-          {/* Leaderboard */}
           <Leaderboard tribes={data.tribes} survivors={data.survivors} />
-
-          {/* Divider */}
-          <div style={{ borderTop: '1px solid var(--gray-200)' }} />
-
-          {/* Finn's Tribe */}
+          <div className="sidebar-divider" />
+          <CastTracker survivors={data.survivors} />
+          <div className="sidebar-divider" />
           <div>
             <div className="finns-sidebar__title">🐾 Finn's Tribe</div>
             <div className="finns-sidebar__grid">
-              {undrafted.length === 0 && (
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  All drafted!
-                </span>
-              )}
-              {undrafted.map(s => (
-                <div key={s.id} className={`finns-chip ${s.eliminated ? 'finns-chip--eliminated' : ''}`}>
-                  <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
-                  {s.name}
-                  {s.eliminated && <span className="finns-chip__boot">(#{s.eliminationOrder})</span>}
-                </div>
-              ))}
+              {undrafted.length === 0
+                ? <span className="finns-empty">All drafted!</span>
+                : undrafted.map(s => (
+                  <div key={s.id} className={`finns-chip ${s.eliminated ? 'finns-chip--eliminated' : ''}`}>
+                    <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
+                    {s.name}
+                    {s.eliminated && <span className="finns-chip__boot">(#{s.eliminationOrder})</span>}
+                  </div>
+                ))
+              }
             </div>
           </div>
-
-          {/* Divider */}
-          <div style={{ borderTop: '1px solid var(--gray-200)' }} />
-
-          {/* Scoring key */}
-          <div className="scoring-key">
-            <div className="scoring-key__title">Scoring</div>
-            <p className="scoring-key__text">
-              1st boot = 1 pt · Winner = 24 pts. Active survivors show tentative (~) points. Points lock in on elimination.
-            </p>
-          </div>
-
         </aside>
 
         {/* ── MAIN ── */}
@@ -122,6 +161,28 @@ export default function App() {
           </div>
         </main>
 
+      </div>
+
+      {/* ── MOBILE FOOTER SECTIONS ── */}
+      <div className="mobile-footer">
+        <div className="mobile-footer__section">
+          <div className="finns-sidebar__title">🐾 Finn's Tribe</div>
+          <div className="finns-sidebar__grid">
+            {undrafted.length === 0
+              ? <span className="finns-empty">All drafted!</span>
+              : undrafted.map(s => (
+                <div key={s.id} className={`finns-chip ${s.eliminated ? 'finns-chip--eliminated' : ''}`}>
+                  <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
+                  {s.name}
+                  {s.eliminated && <span className="finns-chip__boot">(#{s.eliminationOrder})</span>}
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <div className="mobile-footer__section">
+          <CastTracker survivors={data.survivors} />
+        </div>
       </div>
 
       {/* ── ADMIN BUTTON ── */}

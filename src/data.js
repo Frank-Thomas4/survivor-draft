@@ -49,10 +49,7 @@ export function calculatePoints(survivor, allSurvivors) {
   if (survivor.eliminated && survivor.eliminationOrder !== null) {
     return survivor.eliminationOrder;
   }
-<<<<<<< HEAD
   // Tentative: active survivors always show max possible points (total cast size)
-=======
->>>>>>> eb6f3621505a825ca493d86693082b6609487490
   return total;
 }
 
