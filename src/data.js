@@ -49,9 +49,8 @@ export function calculatePoints(survivor, allSurvivors) {
   if (survivor.eliminated && survivor.eliminationOrder !== null) {
     return survivor.eliminationOrder;
   }
-  // Tentative: if not eliminated, points = (total - number of people already eliminated)
-  const eliminated = allSurvivors.filter(s => s.eliminated).length;
-  return total - eliminated;
+  // Tentative: active survivors always show max possible points (total cast size)
+  return total;
 }
 
 export function getTribePoints(tribe, allSurvivors) {

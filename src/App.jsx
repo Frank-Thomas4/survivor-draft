@@ -22,85 +22,114 @@ export default function App() {
   const [pinInput, setPinInput] = useState('')
   const [pinError, setPinError] = useState(false)
   const [pinMode, setPinMode] = useState(false)
-  const [lastRefreshed, setLastRefreshed] = useState(new Date())
 
   useEffect(() => {
-    const interval = setInterval(() => setLastRefreshed(new Date()), AUTO_REFRESH_MS)
+    const interval = setInterval(() => {}, AUTO_REFRESH_MS)
     return () => clearInterval(interval)
   }, [])
 
-  const handleAdminClick = () => {
-    setPinMode(true)
-    setPinInput('')
-    setPinError(false)
-  }
+  const handleAdminClick = () => { setPinMode(true); setPinInput(''); setPinError(false) }
 
   const handlePinSubmit = (e) => {
     e.preventDefault()
     if (pinInput === ADMIN_PIN) {
-      setPinMode(false)
-      setShowAdmin(true)
-      setPinInput('')
-      setPinError(false)
+      setPinMode(false); setShowAdmin(true); setPinInput(''); setPinError(false)
     } else {
-      setPinError(true)
-      setPinInput('')
+      setPinError(true); setPinInput('')
     }
   }
 
   const eliminatedCount = data.survivors.filter(s => s.eliminated).length
   const remainingCount = data.survivors.length - eliminatedCount
+  const assignedIds = data.tribes.flatMap(t => t.survivors)
+  const undrafted = data.survivors.filter(s => !assignedIds.includes(s.id))
 
   return (
     <div className="app">
+
+      {/* ── HEADER ── */}
       <header className="app-header">
-        <div className="app-header__torch-left" aria-hidden="true">🔥</div>
-        <div className="app-header__center">
-          <div className="app-header__season-label">Season 50</div>
-          <h1 className="app-header__title">Survivor Draft</h1>
-          <div className="app-header__meta">
-            <span>{eliminatedCount} eliminated</span>
-            <span className="app-header__dot">·</span>
-            <span>{remainingCount} remain</span>
-            <span className="app-header__dot">·</span>
-            <span className="app-header__refresh" title={`Last refreshed: ${lastRefreshed.toLocaleTimeString()}`}>
-              ↻ live
-            </span>
-          </div>
+        <div className="app-header__left">
+          <span className="app-header__eyebrow">Survivor 50 · Season 50</span>
+          <h1 className="app-header__title">
+            The Boys<sup>TM</sup> Draft
+          </h1>
         </div>
-        <div className="app-header__torch-right" aria-hidden="true">🔥</div>
+        <div className="app-header__right">
+          <div className="app-header__stat">
+            <span className="app-header__stat-num">{eliminatedCount}</span>
+            <span className="app-header__stat-label">Eliminated</span>
+          </div>
+          <div className="app-header__stat">
+            <span className="app-header__stat-num">{remainingCount}</span>
+            <span className="app-header__stat-label">Remain</span>
+          </div>
+          <span className="app-header__torch">🔥</span>
+        </div>
       </header>
 
-      <section className="app-section app-section--leaderboard">
-        <Leaderboard tribes={data.tribes} survivors={data.survivors} />
-      </section>
+      {/* ── BODY: SIDEBAR + MAIN ── */}
+      <div className="app-body">
 
-      <section className="app-section">
-        <h2 className="section-heading">The Tribes</h2>
-        <div className="tribes-grid">
-          {data.tribes.map(tribe => (
-            <TribeCard key={tribe.id} tribe={tribe} survivors={data.survivors} />
-          ))}
-        </div>
-      </section>
+        {/* ── SIDEBAR ── */}
+        <aside className="app-sidebar">
 
-      <section className="app-section">
-        <FinnsTribe survivors={data.survivors} tribes={data.tribes} />
-      </section>
+          {/* Leaderboard */}
+          <Leaderboard tribes={data.tribes} survivors={data.survivors} />
 
-      <section className="app-section scoring-key">
-        <h3 className="scoring-key__title">How Scoring Works</h3>
-        <p className="scoring-key__text">
-          Each survivor earns points equal to their finishing position — first boot = 1 pt, winner = 24 pts.
-          Active survivors show <strong>tentative points (~)</strong> based on how many people remain.
-          Points lock in permanently when they are eliminated.
-        </p>
-      </section>
+          {/* Divider */}
+          <div style={{ borderTop: '1px solid var(--gray-200)' }} />
 
+          {/* Finn's Tribe */}
+          <div>
+            <div className="finns-sidebar__title">🐾 Finn's Tribe</div>
+            <div className="finns-sidebar__grid">
+              {undrafted.length === 0 && (
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  All drafted!
+                </span>
+              )}
+              {undrafted.map(s => (
+                <div key={s.id} className={`finns-chip ${s.eliminated ? 'finns-chip--eliminated' : ''}`}>
+                  <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
+                  {s.name}
+                  {s.eliminated && <span className="finns-chip__boot">(#{s.eliminationOrder})</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ borderTop: '1px solid var(--gray-200)' }} />
+
+          {/* Scoring key */}
+          <div className="scoring-key">
+            <div className="scoring-key__title">Scoring</div>
+            <p className="scoring-key__text">
+              1st boot = 1 pt · Winner = 24 pts. Active survivors show tentative (~) points. Points lock in on elimination.
+            </p>
+          </div>
+
+        </aside>
+
+        {/* ── MAIN ── */}
+        <main className="app-main">
+          <div className="section-label">The Tribes</div>
+          <div className="tribes-grid">
+            {data.tribes.map(tribe => (
+              <TribeCard key={tribe.id} tribe={tribe} survivors={data.survivors} />
+            ))}
+          </div>
+        </main>
+
+      </div>
+
+      {/* ── ADMIN BUTTON ── */}
       <div className="admin-trigger-wrap">
         <button className="admin-trigger" onClick={handleAdminClick}>⚙ Admin</button>
       </div>
 
+      {/* ── PIN MODAL ── */}
       {pinMode && (
         <div className="modal-overlay" onClick={() => setPinMode(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -125,6 +154,7 @@ export default function App() {
         </div>
       )}
 
+      {/* ── ADMIN PANEL ── */}
       {showAdmin && (
         <AdminPanel
           data={data}
@@ -137,6 +167,7 @@ export default function App() {
           onClose={() => setShowAdmin(false)}
         />
       )}
+
     </div>
   )
 }
