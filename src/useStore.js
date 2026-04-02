@@ -1,98 +1,104 @@
-import { useState, useEffect, useCallback } from 'react';
-import { DEFAULT_DATA } from './data';
+import { useState, useEffect, useCallback } from 'react'
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore'
+import { db } from './firebase'
+import { DEFAULT_DATA } from './data'
 
-const STORAGE_KEY = 'survivor50_draft';
+const DOC_REF = doc(db, 'survivor', 'draft')
 
 export function useStore() {
-  const [data, setData] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return DEFAULT_DATA;
-  });
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Persist to localStorage on every change
+  // Subscribe to real-time updates from Firestore
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [data]);
+    const unsub = onSnapshot(DOC_REF, async (snapshot) => {
+      if (snapshot.exists()) {
+        setData(snapshot.data())
+      } else {
+        // First time — initialize with default data
+        await setDoc(DOC_REF, DEFAULT_DATA)
+        setData(DEFAULT_DATA)
+      }
+      setLoading(false)
+    }, (error) => {
+      console.error('Firestore error:', error)
+      setLoading(false)
+    })
+    return () => unsub()
+  }, [])
 
-  const updateData = useCallback((updater) => {
+  // Save entire data object to Firestore
+  const save = useCallback(async (updater) => {
     setData(prev => {
-      const next = typeof updater === 'function' ? updater(prev) : updater;
-      return { ...next, lastUpdated: new Date().toISOString() };
-    });
-  }, []);
+      const next = typeof updater === 'function' ? updater(prev) : updater
+      const updated = { ...next, lastUpdated: new Date().toISOString() }
+      setDoc(DOC_REF, updated).catch(console.error)
+      return updated
+    })
+  }, [])
 
-  // Update tribe name
   const updateTribeName = useCallback((tribeId, name) => {
-    updateData(prev => ({
+    save(prev => ({
       ...prev,
       tribes: prev.tribes.map(t => t.id === tribeId ? { ...t, name } : t)
-    }));
-  }, [updateData]);
+    }))
+  }, [save])
 
-  // Update tribe icon (base64 string)
   const updateTribeIcon = useCallback((tribeId, icon) => {
-    updateData(prev => ({
+    save(prev => ({
       ...prev,
       tribes: prev.tribes.map(t => t.id === tribeId ? { ...t, icon } : t)
-    }));
-  }, [updateData]);
+    }))
+  }, [save])
 
-  // Assign survivors to a tribe (admin)
   const assignSurvivors = useCallback((tribeId, survivorIds) => {
-    updateData(prev => ({
+    save(prev => ({
       ...prev,
       tribes: prev.tribes.map(t => t.id === tribeId ? { ...t, survivors: survivorIds } : t)
-    }));
-  }, [updateData]);
+    }))
+  }, [save])
 
-  // Mark a survivor as eliminated with their order
   const eliminateSurvivor = useCallback((survivorId, eliminationOrder) => {
-    updateData(prev => ({
+    save(prev => ({
       ...prev,
       survivors: prev.survivors.map(s =>
-        s.id === survivorId
-          ? { ...s, eliminated: true, eliminationOrder }
-          : s
+        s.id === survivorId ? { ...s, eliminated: true, eliminationOrder } : s
       )
-    }));
-  }, [updateData]);
+    }))
+  }, [save])
 
-  // Undo elimination
   const reinstatesSurvivor = useCallback((survivorId) => {
-    updateData(prev => ({
+    save(prev => ({
       ...prev,
       survivors: prev.survivors.map(s =>
-        s.id === survivorId
-          ? { ...s, eliminated: false, eliminationOrder: null }
-          : s
+        s.id === survivorId ? { ...s, eliminated: false, eliminationOrder: null } : s
       )
-    }));
-  }, [updateData]);
+    }))
+  }, [save])
 
-  // Update survivor name (admin)
   const updateSurvivorName = useCallback((survivorId, name) => {
-    updateData(prev => ({
+    save(prev => ({
       ...prev,
       survivors: prev.survivors.map(s => s.id === survivorId ? { ...s, name } : s)
-    }));
-  }, [updateData]);
+    }))
+  }, [save])
 
-  // Reset all data
-  const resetData = useCallback(() => {
-    updateData(DEFAULT_DATA);
-  }, [updateData]);
+  const updateSurvivorPhoto = useCallback((survivorId, photo) => {
+    save(prev => ({
+      ...prev,
+      survivors: prev.survivors.map(s => s.id === survivorId ? { ...s, photo } : s)
+    }))
+  }, [save])
 
   return {
     data,
+    loading,
     updateTribeName,
     updateTribeIcon,
     assignSurvivors,
     eliminateSurvivor,
     reinstatesSurvivor,
     updateSurvivorName,
-    resetData
-  };
+    updateSurvivorPhoto,
+  }
 }

@@ -444,7 +444,6 @@ html, body {
 .survivor-row--active { background: var(--green-pale); }
 .survivor-row--eliminated { background: var(--gray-100); opacity: 0.75; }
 .survivor-row__info { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-.survivor-row__status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot--in  { background: var(--green-in); }
 .dot--out { background: var(--red-elim); }
 .survivor-row__name {
@@ -764,12 +763,171 @@ html, body {
   font-family: 'Cinzel', serif;
 }
 
-/* ── MOBILE ── */
+/* ── SURVIVOR AVATAR ── */
+.survivor-avatar {
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.survivor-avatar--photo {
+  border: 2px solid var(--gray-300);
+}
+.survivor-avatar--initials {
+  background: var(--bark);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  border: 2px solid var(--gray-300);
+}
+.survivor-row--eliminated .survivor-avatar--photo {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+.survivor-row--eliminated .survivor-avatar--initials {
+  background: var(--gray-300);
+  opacity: 0.6;
+}
+.survivor-row__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ── CAST PHOTO GRID (admin) ── */
+.cast-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.cast-photo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 6px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  background: var(--gray-100);
+  text-align: center;
+}
+.cast-photo-card__img-wrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.cast-photo-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cast-photo-card__placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--bark);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.cast-photo-card__loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  background: var(--gray-200);
+}
+.cast-photo-card__name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+  max-width: 100%;
+}
+.cast-photo-card__btn {
+  display: inline-block;
+  background: var(--flame);
+  color: white;
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: opacity 0.15s;
+}
+.cast-photo-card__btn:hover { opacity: 0.85; }
+.cast-photo-card__remove {
+  background: none;
+  border: none;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── ELIM ROW PHOTO ── */
+.elim-row__photo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--gray-300);
+  flex-shrink: 0;
+}
+.loading-screen {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bark);
+}
+.loading-screen__inner {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.loading-screen__torch { font-size: 2.5rem; animation: flicker 1s ease-in-out infinite alternate; }
+@keyframes flicker {
+  from { opacity: 0.7; transform: scale(0.95); }
+  to   { opacity: 1;   transform: scale(1.05); }
+}
+.loading-screen__text {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  color: var(--white);
+  letter-spacing: 0.06em;
+}
+.loading-screen__text sup {
+  font-size: 0.5rem;
+  vertical-align: super;
+  color: var(--gold-light);
+}
+
+/* ── MOBILE FOOTER ── */
+.mobile-footer { display: none; }
+.mobile-footer__section {
+  padding: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
 @media (max-width: 768px) {
   .app-body {
     display: flex;
     flex-direction: column;
-    min-height: unset;
+    height: auto;
+    overflow: visible;
   }
   .app-sidebar {
     position: static;
@@ -779,33 +937,28 @@ html, body {
     padding: 1rem;
     overflow: visible;
   }
-  /* Hide finn's tribe and cast tracker in sidebar on mobile */
-  .app-sidebar .finns-sidebar__title,
-  .app-sidebar .finns-sidebar__grid,
-  .app-sidebar .cast-tracker,
-  .app-sidebar .sidebar-divider:not(:first-of-type) {
-    display: none;
-  }
-  .app-main { padding: 1rem; }
-  .tribes-grid { grid-template-columns: repeat(2, 1fr); }
-  /* Show mobile footer sections */
-  .mobile-footer {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    border-top: 1px solid var(--gray-200);
-  }
-  .mobile-footer__section {
+  .app-sidebar .cast-tracker { display: none; }
+  .app-sidebar .sidebar-divider { display: none; }
+  .app-main {
+    height: auto;
+    overflow: visible;
     padding: 1rem;
-    border-bottom: 1px solid var(--gray-200);
+  }
+  .tribes-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: unset;
+    flex: unset;
+  }
+  .mobile-footer {
+    display: block;
+    border-top: 1px solid var(--gray-200);
   }
   .app-header__stat { display: none; }
 }
 
 @media (max-width: 480px) {
   .tribes-grid { grid-template-columns: 1fr; }
-  .app-header { height: 48px; }
+  .app-header { height: 52px; }
   .app-header__eyebrow { display: none; }
-  .app-header__title { font-size: 0.95rem; }
-  .tooltip-btn span { display: none; }
+  .app-header__title { font-size: 1.1rem; }
 }

@@ -1,6 +1,28 @@
 import React from 'react'
 import { calculatePoints, getTribePoints } from '../data'
 
+function SurvivorAvatar({ survivor, size = 36 }) {
+  const initials = survivor.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  if (survivor.photo) {
+    return (
+      <img
+        src={survivor.photo}
+        alt={survivor.name}
+        className="survivor-avatar survivor-avatar--photo"
+        style={{ width: size, height: size }}
+      />
+    )
+  }
+  return (
+    <div
+      className="survivor-avatar survivor-avatar--initials"
+      style={{ width: size, height: size, fontSize: size * 0.35 }}
+    >
+      {initials}
+    </div>
+  )
+}
+
 export default function TribeCard({ tribe, survivors }) {
   const tribePoints = getTribePoints(tribe, survivors)
 
@@ -19,13 +41,10 @@ export default function TribeCard({ tribe, survivors }) {
     <div className="tribe-card">
       <div className="tribe-card__header">
         <div className="tribe-card__icon-wrap">
-          {tribe.icon ? (
-            <img src={tribe.icon} alt={tribe.name} className="tribe-card__icon" />
-          ) : (
-            <div className="tribe-card__icon-placeholder">
-              {tribe.owner ? tribe.owner[0].toUpperCase() : '?'}
-            </div>
-          )}
+          {tribe.icon
+            ? <img src={tribe.icon} alt={tribe.name} className="tribe-card__icon" />
+            : <div className="tribe-card__icon-placeholder">{tribe.owner ? tribe.owner[0].toUpperCase() : '?'}</div>
+          }
         </div>
         <div className="tribe-card__title-group">
           <h2 className="tribe-card__tribe-name">{tribe.name}</h2>
@@ -43,19 +62,20 @@ export default function TribeCard({ tribe, survivors }) {
         )}
         {assignedSurvivors.map(s => {
           const pts = calculatePoints(s, survivors)
-          const isTentative = !s.eliminated
           return (
             <div key={s.id} className={`survivor-row ${s.eliminated ? 'survivor-row--eliminated' : 'survivor-row--active'}`}>
               <div className="survivor-row__info">
-                <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
-                <span className="survivor-row__name">{s.name}</span>
-                {s.eliminated && (
-                  <span className="survivor-row__boot-tag">Boot #{s.eliminationOrder}</span>
-                )}
+                <SurvivorAvatar survivor={s} size={32} />
+                <div className="survivor-row__text">
+                  <span className="survivor-row__name">{s.name}</span>
+                  {s.eliminated && (
+                    <span className="survivor-row__boot-tag">Boot #{s.eliminationOrder}</span>
+                  )}
+                </div>
               </div>
               <div className="survivor-row__points">
                 <span className="survivor-row__pts-num">{pts}</span>
-                {isTentative && <span className="survivor-row__tentative" title="Tentative">~</span>}
+                {!s.eliminated && <span className="survivor-row__tentative">~</span>}
               </div>
             </div>
           )

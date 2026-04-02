@@ -10,15 +10,18 @@ export default function AdminPanel({
   onEliminateSurvivor,
   onReinstateSurvivor,
   onUpdateSurvivorName,
+  onUpdateSurvivorPhoto,
   onClose
 }) {
   const [activeTab, setActiveTab] = useState('assign')
   const [editingNames, setEditingNames] = useState({})
   const [editingSurvivorNames, setEditingSurvivorNames] = useState({})
+  const [uploadingPhoto, setUploadingPhoto] = useState(null)
 
   const { tribes, survivors } = data
   const eliminatedCount = survivors.filter(s => s.eliminated).length
 
+  // ── Tribe name ──
   const handleTribeNameChange = (tribeId, val) => {
     setEditingNames(prev => ({ ...prev, [tribeId]: val }))
   }
@@ -28,6 +31,7 @@ export default function AdminPanel({
     setEditingNames(prev => { const n = { ...prev }; delete n[tribeId]; return n })
   }
 
+  // ── Tribe icon ──
   const handleIconUpload = (tribeId, e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -36,6 +40,7 @@ export default function AdminPanel({
     reader.readAsDataURL(file)
   }
 
+  // ── Draft assign ──
   const handleAssignToggle = (tribeId, survivorId) => {
     const tribe = tribes.find(t => t.id === tribeId)
     const already = tribe.survivors.includes(survivorId)
@@ -54,15 +59,40 @@ export default function AdminPanel({
     onAssignSurvivors(tribeId, newList)
   }
 
+  // ── Eliminate ──
   const handleEliminate = (survivorId) => {
-    const nextOrder = eliminatedCount + 1
-    onEliminateSurvivor(survivorId, nextOrder)
+    onEliminateSurvivor(survivorId, eliminatedCount + 1)
   }
 
+  // ── Survivor name ──
   const handleSurvivorNameSave = (id) => {
     const val = editingSurvivorNames[id]
     if (val && val.trim()) onUpdateSurvivorName(id, val.trim())
     setEditingSurvivorNames(prev => { const n = { ...prev }; delete n[id]; return n })
+  }
+
+  // ── Survivor photo ──
+  const handlePhotoUpload = (survivorId, e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploadingPhoto(survivorId)
+    // Resize image before storing to keep Firebase document small
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const MAX = 200
+      const ratio = Math.min(MAX / img.width, MAX / img.height)
+      canvas.width = img.width * ratio
+      canvas.height = img.height * ratio
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const base64 = canvas.toDataURL('image/jpeg', 0.75)
+      onUpdateSurvivorPhoto(survivorId, base64)
+      URL.revokeObjectURL(url)
+      setUploadingPhoto(null)
+    }
+    img.src = url
   }
 
   const assignedIds = tribes.flatMap(t => t.survivors)
@@ -85,13 +115,14 @@ export default function AdminPanel({
               {tab === 'assign' && 'Draft Picks'}
               {tab === 'eliminate' && 'Eliminations'}
               {tab === 'tribes' && 'Tribe Settings'}
-              {tab === 'cast' && 'Edit Cast'}
+              {tab === 'cast' && 'Cast Photos'}
             </button>
           ))}
         </div>
 
         <div className="admin-panel__body">
 
+          {/* ── DRAFT PICKS ── */}
           {activeTab === 'assign' && (
             <div>
               <p className="admin-hint">Select up to 3 survivors per tribe.</p>
@@ -122,9 +153,10 @@ export default function AdminPanel({
             </div>
           )}
 
+          {/* ── ELIMINATIONS ── */}
           {activeTab === 'eliminate' && (
             <div>
-              <p className="admin-hint">Mark survivors eliminated in order. Next elimination will be Boot #{eliminatedCount + 1}.</p>
+              <p className="admin-hint">Mark survivors eliminated in order. Next will be Boot #{eliminatedCount + 1}.</p>
               <div className="elim-list">
                 {survivors
                   .slice()
@@ -137,16 +169,18 @@ export default function AdminPanel({
                   .map(s => (
                     <div key={s.id} className={`elim-row ${s.eliminated ? 'elim-row--out' : ''}`}>
                       <div className="elim-row__info">
-                        <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
+                        {s.photo
+                          ? <img src={s.photo} alt={s.name} className="elim-row__photo" />
+                          : <span className={`survivor-row__status-dot ${s.eliminated ? 'dot--out' : 'dot--in'}`} />
+                        }
                         <span className="elim-row__name">{s.name}</span>
                         {s.eliminated && <span className="elim-row__order">Boot #{s.eliminationOrder}</span>}
                       </div>
                       <div className="elim-row__actions">
-                        {s.eliminated ? (
-                          <button className="btn-reinstate" onClick={() => onReinstateSurvivor(s.id)}>Reinstate</button>
-                        ) : (
-                          <button className="btn-eliminate" onClick={() => handleEliminate(s.id)}>Eliminate</button>
-                        )}
+                        {s.eliminated
+                          ? <button className="btn-reinstate" onClick={() => onReinstateSurvivor(s.id)}>Reinstate</button>
+                          : <button className="btn-eliminate" onClick={() => handleEliminate(s.id)}>Eliminate</button>
+                        }
                       </div>
                     </div>
                   ))}
@@ -154,6 +188,7 @@ export default function AdminPanel({
             </div>
           )}
 
+          {/* ── TRIBE SETTINGS ── */}
           {activeTab === 'tribes' && (
             <div>
               {tribes.map(tribe => (
@@ -186,20 +221,42 @@ export default function AdminPanel({
             </div>
           )}
 
+          {/* ── CAST PHOTOS ── */}
           {activeTab === 'cast' && (
             <div>
-              <p className="admin-hint">Edit survivor names if needed.</p>
-              <div className="cast-list">
+              <p className="admin-hint">Upload a headshot for each castaway. Photos are stored in Firebase and visible to all players instantly.</p>
+              <div className="cast-photo-grid">
                 {survivors.map(s => (
-                  <div key={s.id} className="cast-row">
-                    <span className="cast-row__num">#{s.id}</span>
-                    <input
-                      className="admin-input admin-input--sm"
-                      value={editingSurvivorNames[s.id] !== undefined ? editingSurvivorNames[s.id] : s.name}
-                      onChange={e => setEditingSurvivorNames(prev => ({ ...prev, [s.id]: e.target.value }))}
-                      onBlur={() => handleSurvivorNameSave(s.id)}
-                      onKeyDown={e => e.key === 'Enter' && handleSurvivorNameSave(s.id)}
-                    />
+                  <div key={s.id} className="cast-photo-card">
+                    <div className="cast-photo-card__img-wrap">
+                      {uploadingPhoto === s.id ? (
+                        <div className="cast-photo-card__loading">⏳</div>
+                      ) : s.photo ? (
+                        <img src={s.photo} alt={s.name} className="cast-photo-card__img" />
+                      ) : (
+                        <div className="cast-photo-card__placeholder">
+                          {s.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="cast-photo-card__name">{s.name}</div>
+                    <label className="cast-photo-card__btn">
+                      {s.photo ? '↺ Replace' : '+ Photo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={e => handlePhotoUpload(s.id, e)}
+                      />
+                    </label>
+                    {s.photo && (
+                      <button
+                        className="cast-photo-card__remove"
+                        onClick={() => onUpdateSurvivorPhoto(s.id, null)}
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
