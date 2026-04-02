@@ -36,7 +36,7 @@ html, body {
   background: var(--white);
   color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -45,8 +45,8 @@ html, body {
 /* ── HEADER ── */
 .app-header {
   background: var(--bark);
-  padding: 0 1.25rem;
-  height: 52px;
+  padding: 0 1.5rem;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -58,7 +58,7 @@ html, body {
 .app-header__left { display: flex; flex-direction: column; }
 .app-header__eyebrow {
   font-family: 'Cinzel', serif;
-  font-size: 0.55rem;
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--gold-light);
@@ -67,7 +67,7 @@ html, body {
 }
 .app-header__title {
   font-family: 'Cinzel', serif;
-  font-size: 1.1rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--white);
   letter-spacing: 0.04em;
@@ -155,23 +155,23 @@ html, body {
 .app-body {
   display: grid;
   grid-template-columns: 280px 1fr;
-  height: calc(100vh - 52px);
+  height: calc(100vh - 60px);
   overflow: hidden;
 }
 .app-sidebar {
   border-right: 1px solid var(--gray-200);
-  padding: 0.75rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 1rem;
   height: 100%;
   overflow-y: auto;
 }
 .app-main {
-  padding: 0.875rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.875rem;
   height: 100%;
   overflow-y: auto;
 }
@@ -348,8 +348,9 @@ html, body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 0.65rem;
+  gap: 0.75rem;
   flex: 1;
+  min-height: 0;
 }
 
 /* ── TRIBE CARD ── */
@@ -360,18 +361,21 @@ html, body {
   box-shadow: var(--shadow-xs);
   overflow: hidden;
   transition: box-shadow 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
 }
 .tribe-card:hover { box-shadow: var(--shadow-sm); border-color: var(--gray-300); }
 .tribe-card__header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px 6px;
+  gap: 10px;
+  padding: 12px 14px 10px;
   border-bottom: 1px solid var(--gray-100);
   background: var(--gray-100);
+  flex-shrink: 0;
 }
 .tribe-card__icon-wrap {
-  width: 28px; height: 28px;
+  width: 38px; height: 38px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -383,14 +387,14 @@ html, body {
   background: var(--bark);
   display: flex; align-items: center; justify-content: center;
   font-family: 'Cinzel', serif;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--white);
 }
 .tribe-card__title-group { flex: 1; min-width: 0; }
 .tribe-card__tribe-name {
   font-family: 'Cinzel', serif;
-  font-size: 0.7rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
@@ -398,7 +402,7 @@ html, body {
   text-overflow: ellipsis;
   display: block;
 }
-.tribe-card__owner { font-size: 0.6rem; color: var(--text-muted); }
+.tribe-card__owner { font-size: 0.72rem; color: var(--text-muted); }
 .tribe-card__points-badge {
   display: flex;
   flex-direction: column;
@@ -406,43 +410,45 @@ html, body {
   background: var(--flame);
   color: white;
   border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  min-width: 34px;
+  padding: 4px 10px;
+  min-width: 44px;
 }
 .tribe-card__points-num {
   font-family: 'Cinzel', serif;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1;
 }
 .tribe-card__points-label {
-  font-size: 0.48rem;
+  font-size: 0.55rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   opacity: 0.85;
 }
 .tribe-card__survivors {
-  padding: 6px 8px;
+  padding: 0 8px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
 }
-.tribe-card__empty { font-size: 0.7rem; color: var(--text-muted); font-style: italic; padding: 4px 0; }
+.tribe-card__empty { font-size: 0.82rem; color: var(--text-muted); font-style: italic; padding: 4px 0; }
 .survivor-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3px 6px;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
 }
 .survivor-row--active { background: var(--green-pale); }
 .survivor-row--eliminated { background: var(--gray-100); opacity: 0.75; }
-.survivor-row__info { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; }
-.survivor-row__status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.survivor-row__info { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.survivor-row__status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot--in  { background: var(--green-in); }
 .dot--out { background: var(--red-elim); }
 .survivor-row__name {
-  font-size: 0.7rem;
+  font-size: 0.88rem;
   font-weight: 500;
   color: var(--text);
   white-space: nowrap;
@@ -455,34 +461,35 @@ html, body {
   font-weight: 400;
 }
 .survivor-row__boot-tag {
-  font-size: 0.56rem;
+  font-size: 0.68rem;
   color: var(--red-elim);
   background: var(--red-pale);
   border-radius: 4px;
-  padding: 1px 4px;
+  padding: 1px 5px;
   white-space: nowrap;
   flex-shrink: 0;
 }
-.survivor-row__points { display: flex; align-items: baseline; gap: 1px; flex-shrink: 0; margin-left: 3px; }
+.survivor-row__points { display: flex; align-items: baseline; gap: 1px; flex-shrink: 0; margin-left: 4px; }
 .survivor-row__pts-num {
   font-family: 'Cinzel', serif;
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--bark-mid);
 }
-.survivor-row__tentative { font-size: 0.58rem; color: var(--text-muted); }
+.survivor-row__tentative { font-size: 0.65rem; color: var(--text-muted); }
 .tribe-card__footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 3px 8px 6px;
-  font-size: 0.6rem;
+  padding: 6px 12px 10px;
+  font-size: 0.72rem;
   color: var(--text-muted);
   border-top: 1px solid var(--gray-100);
+  flex-shrink: 0;
 }
 .tribe-card__footer-total {
   font-family: 'Cinzel', serif;
-  font-size: 0.68rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--flame);
 }
